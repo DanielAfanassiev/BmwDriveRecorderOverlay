@@ -36,13 +36,6 @@ jobs:
           /p:PublishSingleFile=false `
           -o ./publish
 
-    - name: Copy OpenCvSharp native DLLs
-      run: |
-        $source = "$env:USERPROFILE\.nuget\packages\opencvsharp4.runtime.win\4.11.0.20250507\build\native\*"
-        $destination = "publish\native"
-        Copy-Item -Path $source -Destination $destination -Recurse -Force
-
-
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
