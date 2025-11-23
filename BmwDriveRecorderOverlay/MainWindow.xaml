@@ -1,0 +1,13 @@
+﻿<Window x:Class="BmwDriveRecorderOverlay.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="BMW Drive Recorder Info Display" Height="300" Width="500">
+
+    <Grid Margin="20">
+        <StackPanel>
+            <Button Content="Select Folder" Width="150" Click="SelectFolder_Click" />
+            <TextBlock x:Name="FolderPathText" Margin="0,10,0,10" />
+            <Button Content="Process Video" Width="150" Click="ProcessVideo_Click" />
+        </StackPanel>
+    </Grid>
+</Window>
