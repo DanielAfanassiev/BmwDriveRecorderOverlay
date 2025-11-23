@@ -3,7 +3,7 @@ name: Build WPF App
 on:
   push:
     branches:
-      - '**'   # or your default branch
+      - '**'
   pull_request:
     branches:
       - '**'
@@ -19,7 +19,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '8.0.x'  # matches your project
+        dotnet-version: '8.0.x'
 
     - name: Restore dependencies
       run: dotnet restore ./BmwDriveRecorderOverlay/BmwDriveRecorderOverlay.csproj
@@ -35,16 +35,6 @@ jobs:
           --self-contained true `
           /p:PublishSingleFile=false `
           -o ./publish
-
-    - name: Download FFmpeg
-      run: |
-        dotnet tool restore
-        dotnet add package Xabe.FFmpeg.Downloader
-        # Pre-download latest FFmpeg binaries to publish folder
-        powershell -Command "Add-Type -AssemblyName System.IO.Compression.FileSystem; `
-        [System.IO.Directory]::CreateDirectory('./publish/FFmpeg'); `
-        [Xabe.FFmpeg.Downloader.FFmpegDownloader]::GetLatestVersion([Xabe.FFmpeg.FFmpegVersion]::Official).Result; `
-        Copy-Item \"$env:USERPROFILE\.nuget\packages\xabe.ffmpeg\6.0.2\tools\*\" './publish/FFmpeg' -Recurse"
 
     - name: Copy OpenCvSharp native DLLs
       run: |
