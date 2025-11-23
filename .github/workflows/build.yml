@@ -3,7 +3,7 @@ name: Build WPF App
 on:
   push:
     branches:
-      - '**''
+      - '**'
   pull_request:
     branches:
       - '**'
