@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using OpenCvSharp;
+﻿using OpenCvSharp;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -63,7 +62,7 @@ namespace BmwDriveRecorderOverlay
             if (vehicles == null || vehicles.Count == 0) return;
 
             var metadataEntries = vehicles[0].Entries;
-            if(metadataEntries is null) return;
+            if (metadataEntries is null) return;
             int ratio = (int)(metadataEntries.Count / capture.FrameCount);
 
             // VideoWriter setup
@@ -97,7 +96,7 @@ namespace BmwDriveRecorderOverlay
                 string text2 = $"{entry.VelocityMpH} mph";
 
                 Cv2.PutText(frame, text1, new Point(x, y), font, fontScale, new Scalar(0, 0, 255), thickness);
-                Cv2.PutText(frame, text2, new Point(x, y*2), font, fontScale, new Scalar(0, 0, 255), thickness);
+                Cv2.PutText(frame, text2, new Point(x, y * 2), font, fontScale, new Scalar(0, 0, 255), thickness);
                 writer.Write(frame);
 
                 frameCount++;
@@ -132,7 +131,7 @@ namespace BmwDriveRecorderOverlay
             return outputFile;
         }
 
-        private string PadWithZeros(double speed) 
+        private string PadWithZeros(double speed)
         {
             string speedString = "";
             if (speed < 1)
@@ -147,21 +146,21 @@ namespace BmwDriveRecorderOverlay
             {
                 speedString = "-" + speed.ToString();
             }
-            else 
+            else
             {
                 speedString = speed.ToString();
             }
-                while (speedString.Length < 6)
+            while (speedString.Length < 6)
+            {
+                if (speedString.Length == 3)
                 {
-                    if (speedString.Length == 3)
-                    {
-                        speedString += ".";
-                    }
-                    else
-                    {
-                        speedString += "0";
-                    }
+                    speedString += ".";
                 }
+                else
+                {
+                    speedString += "0";
+                }
+            }
             return speedString;
         }
     }
