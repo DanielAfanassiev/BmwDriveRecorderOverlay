@@ -4,31 +4,40 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '10.0.0' # change to your .NET version
+        dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ./BmwDriveRecorderOverlay/BmwDriveRecorderOverlay.csproj
 
-    - name: Build solution
-      run: dotnet build --configuration Release
+    - name: Build project
+      run: dotnet build ./BmwDriveRecorderOverlay/BmwDriveRecorderOverlay.csproj -c Release
 
-    - name: Publish WPF exe
-      run: dotnet publish BmwDriveRecorderOverlay.slnx -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true -o ./publish
+    - name: Publish single-file exe
+      run: dotnet publish ./BmwDriveRecorderOverlay/BmwDriveRecorderOverlay.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            /p:PublishSingleFile=true `
+            /p:PublishTrimmed=true `
+            -o ./publish
 
     - name: Upload exe artifact
       uses: actions/upload-artifact@v3
       with:
-        name: BMW-Drive-Recorder-Overlay-App
+        name: BMW-Drive-Recorder-Overlay-Exe
         path: ./publish
