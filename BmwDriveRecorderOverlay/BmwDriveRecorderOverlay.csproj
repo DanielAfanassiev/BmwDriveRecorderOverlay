@@ -24,4 +24,10 @@
 		<FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Content Include="$(UserProfile)\.nuget\packages\opencvsharp4.runtime.win\4.11.0.20250507\build\native\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
 </Project>

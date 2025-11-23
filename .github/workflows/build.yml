@@ -3,7 +3,7 @@ name: Build WPF App
 on:
   push:
     branches:
-      - '**''
+      - '**'
   pull_request:
     branches:
       - '**'
@@ -27,12 +27,17 @@ jobs:
     - name: Build project
       run: dotnet build ./BmwDriveRecorderOverlay/BmwDriveRecorderOverlay.csproj -c Release
 
-    - name: Publish single-file exe
-      run: dotnet publish ./BmwDriveRecorderOverlay/BmwDriveRecorderOverlay.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o ./publish
+    - name: Publish project
+      run: |
+        dotnet publish ./BmwDriveRecorderOverlay/BmwDriveRecorderOverlay.csproj `
+          -c Release `
+          -r win-x64 `
+          --self-contained true `
+          /p:PublishSingleFile=false `
+          -o ./publish
 
-
-    - name: Upload exe artifact
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: BMW-Drive-Recorder-Overlay-Exe
+        name: BMW-Drive-Recorder-Overlay-App
         path: ./publish
