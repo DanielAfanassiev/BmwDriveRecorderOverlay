@@ -1,10 +1,8 @@
 ﻿using OpenCvSharp;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks.Sources;
 using System.Windows;
 using System.Windows.Forms;
 using Xabe.FFmpeg;
@@ -100,10 +98,8 @@ namespace BmwDriveRecorderOverlay
             string outputFolder = string.Concat(folder.AsSpan(0, lastSlash), "\\ProcessedVideos\\");
 
             var output = Directory.CreateDirectory(outputFolder);
-            Debug.WriteLine(outputFolder);
 
             string outputFile = Path.Combine(outputFolder, fileName);
-            Debug.WriteLine(outputFile);
 
             using var writer = new VideoWriter(outputFile, FourCC.MP4V, capture.Fps, new Size(width, height), true);
 
@@ -127,7 +123,6 @@ namespace BmwDriveRecorderOverlay
             var lastStillIndex = -1;
             double topSpeed = 0;
             double topSpeedIndex = -1;
-            string? topSpeedTime = "";
 
             foreach (var item in metadataEntries)
             {
@@ -160,7 +155,6 @@ namespace BmwDriveRecorderOverlay
                 {
                     lastStillIndex = Math.Max(0, (entry.Id-1) - 1); // index of array where first movement occured (entry.Id-1), and then go back a frame because  we want the previous one (-1)
                     startTime = metadataEntries[lastStillIndex].Time;
-                    Debug.WriteLine(startTime);
                     timeDif = topSpeedIndex - (lastStillIndex - 2);
 
                 }
@@ -178,6 +172,7 @@ namespace BmwDriveRecorderOverlay
 
             MessageBox.Show("Processing complete. Output saved to " + outputFile);
             Processing = Visibility.Visible;
+            File.Delete(videoFile);
         }
 
 
