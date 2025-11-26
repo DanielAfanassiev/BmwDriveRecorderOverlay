@@ -1,4 +1,5 @@
 ﻿using OpenCvSharp;
+using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,14 +14,32 @@ using Window = System.Windows.Window;
 
 namespace BmwDriveRecorderOverlay
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        private string selectedFolder = "";
+        private Visibility _processing = Visibility.Visible;
+        public Visibility Processing
+        {
+            get => _processing;
+            set
+            {
+                _processing = value;
+                OnPropertyChanged(nameof(Processing));
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged(string name)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
 
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = this;
         }
+
+        private string selectedFolder = "";
 
         private void SelectFolder_Click(object sender, RoutedEventArgs e)
         {
@@ -34,6 +53,7 @@ namespace BmwDriveRecorderOverlay
 
         private async void ProcessVideo_Click(object sender, RoutedEventArgs e)
         {
+            Processing = Visibility.Hidden;
             var files = Directory.EnumerateFiles(selectedFolder);
 
             string videoFile = "";
@@ -68,7 +88,18 @@ namespace BmwDriveRecorderOverlay
             // VideoWriter setup
             int width = (int)capture.FrameWidth;
             int height = (int)capture.FrameHeight;
-            string outputFile = Path.Combine(selectedFolder, "output.mp4");
+            string folder = selectedFolder + "";
+
+            const char backSlash = '\\';
+
+            int lastSlash = folder.LastIndexOf(backSlash);
+
+            string fileName = folder.Substring(lastSlash + 1) + "-" + DateTime.UtcNow.ToFileTime().ToString() + ".mp4";
+            string outputFolder = string.Concat(folder.AsSpan(0, lastSlash), "\\ProcessedVideos\\");
+
+            var output = Directory.CreateDirectory(outputFolder);
+
+            string outputFile = Path.Combine(outputFolder, fileName);
 
             using var writer = new VideoWriter(outputFile, FourCC.MP4V, capture.Fps, new Size(width, height), true);
 
@@ -86,23 +117,62 @@ namespace BmwDriveRecorderOverlay
             var frame = new Mat();
             int frameCount = 0;
 
-            while (capture.Read(frame))
+
+            // Data tracking
+            string? startTime = "";
+            var lastStillIndex = -1;
+            double topSpeed = 0;
+            double topSpeedIndex = -1;
+
+            foreach (var item in metadataEntries)
+            {
+                if (item.VelocityKmH > topSpeed) // "Calculating" top speed
+                {
+                    topSpeed = item.VelocityKmH;
+                    topSpeedIndex = item.Id-1;
+                }
+            }
+
+            double timeDif = -1;
+
+            while (capture.Read(frame)) // Drawing each frame and drawing information on frames
             {
                 int index = Math.Min(frameCount * ratio, metadataEntries.Count - 1);
                 var entry = metadataEntries[index];
                 string velocityKph = PadWithZeros(entry.VelocityKmH);
 
-                string text1 = $"Speed: {velocityKph} km/h";
-                string text2 = $"{entry.VelocityMpH} mph";
+                List<string> lines = [$"Speed: {velocityKph} km/h", $"{entry.VelocityMpH} mph"];
 
-                Cv2.PutText(frame, text1, new Point(x, y), font, fontScale, new Scalar(0, 0, 255), thickness);
-                Cv2.PutText(frame, text2, new Point(x, y * 2), font, fontScale, new Scalar(0, 0, 255), thickness);
+                if (index > topSpeedIndex)
+                {
+                    var difference = (timeDif / 30);
+                    lines.Add($"Top speed: {topSpeed}km / h");
+                    lines.Add($"{metadataEntries[lastStillIndex].VelocityKmH} to {metadataEntries[(int)topSpeedIndex].VelocityKmH}: " + Math.Round(difference, 3) + "s");
+
+                }
+
+                if (entry.VelocityKmH != 0 && lastStillIndex == -1)
+                {
+                    lastStillIndex = Math.Max(0, (entry.Id-1) - 1); // index of array where first movement occured (entry.Id-1), and then go back a frame because  we want the previous one (-1)
+                    startTime = metadataEntries[lastStillIndex].Time;
+                    timeDif = topSpeedIndex - (lastStillIndex - 2);
+
+                }
+
+
+
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    Cv2.PutText(frame, lines[i], new Point(x, y * (i+1)), font, fontScale, new Scalar(0, 0, 255), thickness);
+                }
                 writer.Write(frame);
 
                 frameCount++;
             }
 
             MessageBox.Show("Processing complete. Output saved to " + outputFile);
+            Processing = Visibility.Visible;
+            File.Delete(videoFile);
         }
 
 
@@ -136,15 +206,15 @@ namespace BmwDriveRecorderOverlay
             string speedString = "";
             if (speed < 1)
             {
-                speedString = "--0.00";
+                speedString = "  0.00";
             }
             else if (speed < 10)
             {
-                speedString = "--" + speed.ToString();
+                speedString = "  " + speed.ToString();
             }
             else if (speed < 100)
             {
-                speedString = "-" + speed.ToString();
+                speedString = " " + speed.ToString();
             }
             else
             {

@@ -7,7 +7,7 @@
         <StackPanel>
             <Button Content="Select Folder" Width="150" Click="SelectFolder_Click" />
             <TextBlock x:Name="FolderPathText" Margin="0,10,0,10" />
-            <Button Content="Process Video" Width="150" Click="ProcessVideo_Click" />
+            <Button Content="Process Video" Width="150" Click="ProcessVideo_Click" Visibility="{Binding Processing}" />
         </StackPanel>
     </Grid>
 </Window>
